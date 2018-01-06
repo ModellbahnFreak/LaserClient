@@ -160,7 +160,7 @@ public class ControlGui extends Application implements Runnable {
 		System.out.println("Gui started");
 		primaryStage.setTitle("Laser control Panel");
 		URL iconPath;
-		iconPath = getClass().getResource("/laser.png");
+		iconPath = getClass().getResource("/icon.png");
 		primaryStage.getIcons().add(new Image(iconPath.toString()));
 		primaryStage.show();
 		// primaryStage.setFullScreen(true);
