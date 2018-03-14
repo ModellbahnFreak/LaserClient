@@ -93,7 +93,7 @@ public class ControlGui extends Application implements Runnable {
 
 			@Override
 			public void run() {
-				Client.SendComm.add(
+				Client.sendData.add(
 						"sequence;Seq1\r\n" + "img;Bild1;E:\\Georg\\Bilder\\Martin_und_Regine.JPG;0;0;full;full\r\n"
 								+ "txt;txt1;500;500;'Hallo;Welt';#FF00FF\r\n" + "cue;1000;1000;0;1000\r\n"
 								+ "move;txt1;100;100\r\n" + "move;Bild1;500;500\r\n" + "cueEnd\r\n"
@@ -105,7 +105,7 @@ public class ControlGui extends Application implements Runnable {
 
 			@Override
 			public void run() {
-				Client.SendComm.add("playSeq;Seq1");
+				Client.sendData.add("playSeq;Seq1");
 			}
 		});
 		Runnable checkScreensh = new Runnable() {
@@ -132,10 +132,10 @@ public class ControlGui extends Application implements Runnable {
 			@Override
 			public void run() {
 				if (Client.einst.getScreenshActive()) {
-					Client.SendComm.add("system;screenshot;0");
+					Client.sendData.add("system;screenshot;0");
 					Client.einst.setScreenshActive(false);
 				} else {
-					Client.SendComm.add("system;screenshot;1");
+					Client.sendData.add("system;screenshot;1");
 					Client.einst.setScreenshActive(true);
 					Thread ScreenshT = new Thread(checkScreensh);
 					ScreenshT.setDaemon(true);

@@ -6,6 +6,8 @@ import java.util.Optional;
 
 import client.Client;
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -168,6 +170,7 @@ public class MainControl extends Scene {
 	private GridPane btnBox;
 	public Thread checkStateT;
 	public ImageView iv;
+	private Slider opSlide;
 
 	private String _status = "Nicht verbunden";
 
@@ -272,19 +275,41 @@ public class MainControl extends Scene {
 			@Override
 			public void handle(ActionEvent event) {
 				if (btnBO.isSelected()) {
-					Client.SendComm.add("blackout;1");
+					//Client.sendData.add("blackout;0");
+					opSlide.setValue(0);
 				} else {
-					Client.SendComm.add("blackout;0");
+					opSlide.setValue(1);
+					//Client.sendData.add("blackout;100");
 				}
+				System.out.println("Click");
 			}
 		});
 		btnBox.add(btnBO, 0, 0);
+		
+		opSlide = new Slider(0, 1, 1);
+		opSlide.setShowTickLabels(true);
+		opSlide.setShowTickMarks(true);
+		opSlide.setMajorTickUnit(0.5);
+		opSlide.setMinorTickCount(5);
+		opSlide.setBlockIncrement(0.1);
+		opSlide.valueProperty().addListener(new ChangeListener<Number>() {
+			@Override
+			public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+				Client.sendData.add("blackout;"+newValue);
+				if (newValue.doubleValue() >= 0.5) {
+					btnBO.setSelected(false);
+				} else {
+					btnBO.setSelected(true);
+				}
+			}
+		});
+		btnBox.add(opSlide, 0, 1);
 
-		btnBox.add(createVidBox(), 0, 1);
+		btnBox.add(createVidBox(), 0, 2);
 
-		btnBox.add(createImgBox(), 0, 2);
+		btnBox.add(createImgBox(), 0, 3);
 
-		btnBox.add(createObjBox(), 0, 3);
+		btnBox.add(createObjBox(), 0, 4);
 
 		scrollBalken.setStyle("	.scroll-pane{\r\n" + "   				-fx-background-color:transparent;\r\n"
 				+ "				}\r\n" + "				.scroll-pane > .viewport {\r\n"
@@ -324,7 +349,7 @@ public class MainControl extends Scene {
 		btnRefreshVid.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
-				Client.SendComm.add("system;refresh;video");
+				Client.sendData.add("system;refresh;video");
 				Thread checkReceive = new Thread(new Runnable() {
 
 					@Override
@@ -369,12 +394,16 @@ public class MainControl extends Scene {
 				 * 
 				 * }
 				 */
-				String filenameVid = fileList.getSelectionModel().getSelectedItem();
-				if (filenameVid != null && filenameVid.length() > 0) {
-					Client.SendComm.add("vid;vid" + vidNummer + ";" + filenameVid + ";loop;0;0;full;full");
-					vidNummer++;
+				try {
+					String filenameVid = fileList.getSelectionModel().getSelectedItem();
+					if (filenameVid != null && filenameVid.length() > 0) {
+						Client.sendData.add("vid;vid" + vidNummer + ";" + filenameVid + ";loop;0;0;full;full");
+						vidNummer++;
+					}
+					refreshObjList();
+				} catch (NullPointerException e) {
+					System.out.println("Kein Element gewählt");
 				}
-				refreshObjList();
 			}
 		});
 		vidBox.add(btnPlayVid, 1, 2);
@@ -418,7 +447,7 @@ public class MainControl extends Scene {
 		btnRefreshImg.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
-				Client.SendComm.add("system;refresh;img");
+				Client.sendData.add("system;refresh;img");
 				Thread checkReceive = new Thread(new Runnable() {
 
 					@Override
@@ -462,12 +491,16 @@ public class MainControl extends Scene {
 				 * System.out.println("Neues Video: " + filenameImg);
 				 * Client.SendComm.add("img;img1;" + filenameImg + ";0;0;full;full"); }
 				 */
-				String filenameImg = fileList.getSelectionModel().getSelectedItem();
-				if (filenameImg != null && filenameImg.length() > 0) {
-					Client.SendComm.add("img;img" + vidNummer + ";" + filenameImg + ";0;0;full;full");
-					vidNummer++;
+				try {
+					String filenameImg = fileList.getSelectionModel().getSelectedItem();
+					if (filenameImg != null && filenameImg.length() > 0) {
+						Client.sendData.add("img;img" + vidNummer + ";" + filenameImg + ";0;0;full;full");
+						vidNummer++;
+					}
+					refreshObjList();
+				} catch (NullPointerException e) {
+					System.out.println("Kein Element gewählt");
 				}
-				refreshObjList();
 			}
 		});
 		imgBox.add(btnShowImg, 1, 2);
@@ -501,7 +534,7 @@ public class MainControl extends Scene {
 		// Space around the whole grid
 		objBox.setPadding(new Insets(10, 10, 10, 10));
 
-		lblObj = new Label("Bild: ");
+		lblObj = new Label("Objekte: ");
 		lblObj.setTextFill(Color.WHITE);
 		objBox.add(lblObj, 0, 0);
 
@@ -523,27 +556,31 @@ public class MainControl extends Scene {
 		btnEditObj.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
-				String editName = objList.getSelectionModel().getSelectedItem();
-				String[] eingaben = new String[4];
-				String[] ausg = {"X-Position:", "Y-Position:", "Breite:", "Höhe:"};
-				for (int i = 0; i < 4; i++) {
-					TextInputDialog dialog = new TextInputDialog(eingaben[i]);
-					dialog.setTitle("Objekt bearbeiten");
-					dialog.setHeaderText("Parameter eingeben");
-					dialog.setContentText(ausg[i]);
-
-					// Traditional way to get the response value.
-					Optional<String> result = dialog.showAndWait();
-					if (result.isPresent()) {
-						eingaben[i] = result.get();
-						System.out.println("Edit obj " + i + ": " + eingaben[i]);
-
+				try {
+					String editName = objList.getSelectionModel().getSelectedItem().substring(objList.getSelectionModel().getSelectedItem().indexOf(":")+1);
+					String[] eingaben = new String[4];
+					String[] ausg = {"X-Position:", "Y-Position:", "Breite:", "Höhe:"};
+					for (int i = 0; i < 4; i++) {
+						TextInputDialog dialog = new TextInputDialog(eingaben[i]);
+						dialog.setTitle("Objekt bearbeiten");
+						dialog.setHeaderText("Parameter eingeben");
+						dialog.setContentText(ausg[i]);
+	
+						// Traditional way to get the response value.
+						Optional<String> result = dialog.showAndWait();
+						if (result.isPresent()) {
+							eingaben[i] = result.get();
+							System.out.println("Edit obj " + i + ": " + eingaben[i]);
+	
+						}
 					}
+					Client.sendData.add("xPos;" + editName + ";" + eingaben[0]);
+					Client.sendData.add("yPos;" + editName + ";" + eingaben[1]);
+					Client.sendData.add("width;" + editName + ";" + eingaben[2]);
+					Client.sendData.add("height;" + editName + ";" + eingaben[3]);
+				} catch (NullPointerException e) {
+					System.out.println("Kein Element gewählt");
 				}
-				Client.SendComm.add("xPos;" + editName + ";" + eingaben[0]);
-				Client.SendComm.add("yPos;" + editName + ";" + eingaben[1]);
-				Client.SendComm.add("width;" + editName + ";" + eingaben[2]);
-				Client.SendComm.add("height;" + editName + ";" + eingaben[3]);
 			}
 		});
 		objBox.add(btnEditObj, 1, 2);
@@ -552,9 +589,13 @@ public class MainControl extends Scene {
 		btnDelObj.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
-				String loeschName = objList.getSelectionModel().getSelectedItem();
-				Client.SendComm.add("del;" + loeschName);
-				refreshObjList();
+				try {
+					String loeschName = objList.getSelectionModel().getSelectedItem().substring(objList.getSelectionModel().getSelectedItem().indexOf(":")+1);
+					Client.sendData.add("del;" + loeschName);
+					refreshObjList();
+				} catch (NullPointerException e) {
+					System.out.println("Kein Element gewählt");
+				}
 			}
 		});
 		objBox.add(btnDelObj, 1, 3);
@@ -563,7 +604,7 @@ public class MainControl extends Scene {
 		btnDelAll.setOnAction(new EventHandler<ActionEvent>() {
 			@Override
 			public void handle(ActionEvent event) {
-				Client.SendComm.add("del;all");
+				Client.sendData.add("del;all");
 				refreshObjList();
 			}
 		});
@@ -572,7 +613,7 @@ public class MainControl extends Scene {
 	}
 
 	private void refreshObjList() {
-		Client.SendComm.add("system;refresh;objs");
+		Client.sendData.add("system;refresh;objs");
 		Thread checkReceive = new Thread(new Runnable() {
 
 			@Override

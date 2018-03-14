@@ -7,10 +7,11 @@ public class Client {
 	
 	public static Settings einst = new Settings();
 	private static Network netw = null;
+	private static NetwProcess verarb;
 	private static ControlGui gui = null;
 	private static Thread netwT;
-	public static Queue<String> comm = new LinkedList<String>();
-	public static Queue<String> SendComm = new LinkedList<String>();
+	public static Queue<String> recvData = new LinkedList<String>();
+	public static Queue<String> sendData = new LinkedList<String>();
 
 	public static void main(String[] args) {
 		if (args.length >= 2) {
@@ -18,11 +19,14 @@ public class Client {
 			einst.setPort(Integer.parseInt(args[1]));
 		}
 		gui = new ControlGui();
-		netw = new Network(comm, SendComm);
+		netw = new Network(recvData, sendData);
+		verarb = new NetwProcess(recvData, sendData);
+		Thread verarbT = new Thread(verarb);
+		verarbT.setDaemon(true);
+		verarbT.start();
 		Thread guiT = new Thread(gui);
-		
 		guiT.start();
-		// 
+
 		/*
 		 * synchronized (SendComm) { SendComm.add("Text"); }
 		 */
@@ -35,7 +39,8 @@ public class Client {
 	}
 	
 	public static void closeBeamerConnection() {
-		netw.cancel();
+		//netw.cancel();
+		 netwT.interrupt();
 	}
 
 }
