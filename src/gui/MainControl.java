@@ -32,11 +32,12 @@ import javafx.scene.text.Text;
 
 public class MainControl extends Scene {
 
-	private Runnable playSeq;
-	private Runnable createSeq;
+	//private Runnable playSeq;
+	//private Runnable createSeq;
 	private Runnable zurueck;
-	private Runnable toggleScreen;
-	private Runnable getScreen;
+	//private Runnable toggleScreen;
+	//private Runnable getScreen;
+	private Runnable goSeq;
 	private int vidNummer = 0;
 	private int imgNummer = 0;
 
@@ -138,24 +139,28 @@ public class MainControl extends Scene {
 		}
 	}
 
-	public void setOnSeqPlay(Runnable r) {
+	/*public void setOnSeqPlay(Runnable r) {
 		playSeq = r;
 	}
 
 	public void setOnSeqCreate(Runnable r) {
 		createSeq = r;
-	}
+	}*/
 
 	public void setOnZurueck(Runnable r) {
 		zurueck = r;
 	}
 
-	public void setOnScreenshot(Runnable r) {
+	/*public void setOnScreenshot(Runnable r) {
 		toggleScreen = r;
 	}
 
 	public void setOnGetScreenshot(Runnable r) {
 		getScreen = r;
+	}*/
+	
+	public void setOnGoSequence(Runnable r) {
+		goSeq = r;
 	}
 
 	private ScrollPane scrollBalken = new ScrollPane();
@@ -166,6 +171,7 @@ public class MainControl extends Scene {
 	 */
 	private ToggleButton btnBO;
 	private Button btnBack;
+	private Button btnSeq;
 	private Label lblStatus;
 	private GridPane btnBox;
 	public Thread checkStateT;
@@ -286,6 +292,18 @@ public class MainControl extends Scene {
 		});
 		btnBox.add(btnBO, 0, 0);
 		
+		btnSeq = new Button("Sequences");
+		btnSeq.setOnAction(new EventHandler<ActionEvent>() {
+
+			@Override
+			public void handle(ActionEvent event) {
+				if (goSeq != null) {
+					goSeq.run();
+				}
+			}
+		});
+		btnBox.add(btnSeq, 1, 0);
+		
 		opSlide = new Slider(0, 1, 1);
 		opSlide.setShowTickLabels(true);
 		opSlide.setShowTickMarks(true);
@@ -303,7 +321,7 @@ public class MainControl extends Scene {
 				}
 			}
 		});
-		btnBox.add(opSlide, 0, 1);
+		btnBox.add(opSlide, 0, 1, 3, 1);
 
 		btnBox.add(createVidBox(), 0, 2);
 

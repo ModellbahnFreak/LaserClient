@@ -47,6 +47,7 @@ public class ControlGui extends Application implements Runnable {
 		MainMenu hauptmenue = new MainMenu(root, 800, 600, true);
 		OptionMenu optionen = new OptionMenu(new Group(), 800, 600, true);
 		MainControl steuer = new MainControl(new Group(), 800, 600, true);
+		SequenceEdit seqEdit = new SequenceEdit(new Group(), 800, 600, true);
 		hauptmenue.setOnOptionen(new Runnable() {
 
 			@Override
@@ -89,7 +90,23 @@ public class ControlGui extends Application implements Runnable {
 				primaryStage.setScene(hauptmenue);
 			}
 		});
-		steuer.setOnSeqCreate(new Runnable() {
+		steuer.setOnGoSequence(new Runnable() {
+
+			@Override
+			public void run() {
+				steuer.checkStateT.interrupt();
+				primaryStage.setScene(seqEdit);
+			}
+		});
+		seqEdit.setOnZurueck(new Runnable() {
+
+			@Override
+			public void run() {
+				//steuer.checkStateT.interrupt();
+				primaryStage.setScene(steuer);
+			}
+		});
+		/*steuer.setOnSeqCreate(new Runnable() {
 
 			@Override
 			public void run() {
@@ -153,7 +170,7 @@ public class ControlGui extends Application implements Runnable {
 					steuer.iv.setImage(bild);
 				}
 			}
-		});
+		});*/
 
 		primaryStage.setScene(hauptmenue);
 
